@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HR Policy and Employee Support Agent powered by RAG and web search.">
+    <meta name="theme-color" content="#f7f8fc">
+
+    <title>HR Support Agent</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="brand__logo" aria-hidden="true">H</div>
+
+                <div class="brand__text">
+                    <h1>HR Assist</h1>
+                    <p>Employee support agent</p>
+                </div>
+
+                <button class="icon-button sidebar__close" id="closeSidebarBtn" type="button"
+                    aria-label="Close sidebar">×</button>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn" type="button">
+                <span aria-hidden="true">＋</span>
+                New conversation
+            </button>
+
+            <!-- AGENT WORKFLOW -->
+            <section class="sidebar-section" aria-labelledby="workflowTitle">
+                <div class="section-heading">
+                    <h2 id="workflowTitle">Agent workflow</h2>
+                    <span class="status-indicator" id="workflowStatus">Ready</span>
+                </div>
+
+                <ol class="workflow-list" id="workflowList">
+                    <li class="workflow-step" data-step="route">
+                        <span class="workflow-step__icon">1</span>
+                        <div>
+                            <strong>Understand question</strong>
+                            <p>Classify the request</p>
+                        </div>
+                    </li>
+
+                    <li class="workflow-step" data-step="retrieve">
+                        <span class="workflow-step__icon">2</span>
+                        <div>
+                            <strong>Search company KB</strong>
+                            <p>Retrieve relevant evidence</p>
+                        </div>
+                    </li>
+
+                    <li class="workflow-step" data-step="web">
+                        <span class="workflow-step__icon">3</span>
+                        <div>
+                            <strong>Web search fallback</strong>
+                            <p>Find external references</p>
+                        </div>
+                    </li>
+
+                    <li class="workflow-step" data-step="grade">
+                        <span class="workflow-step__icon">4</span>
+                        <div>
+                            <strong>Validate evidence</strong>
+                            <p>Check relevance and quality</p>
+                        </div>
+                    </li>
+
+                    <li class="workflow-step" data-step="answer">
+                        <span class="workflow-step__icon">5</span>
+                        <div>
+                            <strong>Generate answer</strong>
+                            <p>Respond with supporting sources</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- KNOWLEDGE BASE -->
+            <section class="sidebar-section">
+                <div class="section-heading">
+                    <h2>Knowledge base</h2>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-card__icon" aria-hidden="true">▤</div>
+
+                    <div class="sidebar-card__body">
+                        <strong>Company documents</strong>
+                        <p>PDF, TXT, MD and DOCX</p>
+                    </div>
+
+                    <button class="icon-button" id="openUploadBtn" type="button" aria-label="Upload company documents"
+                        title="Upload documents">＋</button>
+                </div>
+
+                <button class="secondary-btn" id="uploadDocumentBtn" type="button">
+                    Upload documents
+                </button>
+            </section>
+
+            <div class="sidebar-spacer"></div>
+
+            <div class="sidebar-footer">
+                <span class="connection-dot" aria-hidden="true"></span>
+                <span id="connectionStatus">Agent interface ready</span>
+            </div>
+        </aside>
+
+        <!-- MAIN APPLICATION -->
+        <main class="main-panel">
+
+            <!-- TOP NAVIGATION -->
+            <header class="topbar">
+                <div class="topbar__left">
+                    <button class="icon-button menu-button" id="openSidebarBtn" type="button"
+                        aria-label="Open sidebar">☰</button>
+
+                    <div>
+                        <p class="topbar__eyebrow">EMPLOYEE EXPERIENCE</p>
+                        <h2>HR Policy Assistant</h2>
+                    </div>
+                </div>
+
+                <div class="topbar__right">
+                    <span class="topbar-status">
+                        <span class="connection-dot" aria-hidden="true"></span>
+                        AI assistant
+                    </span>
+
+                    <!-- THEME TOGGLE: LIGHT / DARK / SYSTEM -->
+                    <button class="icon-button" id="themeToggleBtn" type="button" aria-label="Change theme"
+                        title="Theme: System — click to change">◐</button>
+                </div>
+            </header>
+
+            <!-- CHAT -->
+            <section class="chat-panel" aria-label="Conversation">
+                <div class="chat-scroll" id="chatScroll">
+
+                    <!-- WELCOME SCREEN -->
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <div class="welcome-icon" aria-hidden="true">✦</div>
+
+                        <p class="welcome-eyebrow">YOUR HR SUPPORT COPILOT</p>
+
+                        <h2>How can I help you today?</h2>
+
+                        <p class="welcome-description">
+                            Ask about company policies, leave, benefits, payroll,
+                            holidays or employee procedures. I can search company
+                            documents and use external web sources when needed.
+                        </p>
+
+                        <div class="suggestion-grid">
+                            <button class="suggestion-card" type="button"
+                                data-question="How many paid leave days are available?">
+                                <span aria-hidden="true">◷</span>
+                                <strong>Leave and holidays</strong>
+                                <span>Understand leave entitlements</span>
+                            </button>
+
+                            <button class="suggestion-card" type="button"
+                                data-question="Explain the company's remote work policy.">
+                                <span aria-hidden="true">⌂</span>
+                                <strong>Remote work</strong>
+                                <span>Find work-from-home guidelines</span>
+                            </button>
+
+                            <button class="suggestion-card" type="button"
+                                data-question="What is the employee notice period?">
+                                <span aria-hidden="true">▤</span>
+                                <strong>Notice period</strong>
+                                <span>Understand exit procedures</span>
+                            </button>
+
+                            <button class="suggestion-card" type="button"
+                                data-question="Search official sources for recent HR or employment rule updates.">
+                                <span aria-hidden="true">◎</span>
+                                <strong>External research</strong>
+                                <span>Look for public information</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- USER AND ASSISTANT MESSAGES -->
+                    <div class="messages-list" id="messagesList" aria-live="polite" aria-relevant="additions"></div>
+
+                    <!-- LOADING INDICATOR -->
+                    <div class="typing-indicator" id="typingIndicator" hidden>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span class="typing-indicator__text">
+                            Researching your question…
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CHAT COMPOSER -->
+                <div class="composer-area">
+                    <form class="chat-composer" id="chatForm">
+                        <label class="sr-only" for="questionInput">
+                            Ask an HR question
+                        </label>
+
+                        <textarea id="questionInput" name="question" rows="1" maxlength="6000"
+                            placeholder="Ask about HR policies, benefits, leave..." autocomplete="off"
+                            required></textarea>
+
+                        <div class="composer-toolbar">
+                            <div class="composer-hints">
+                                <span aria-hidden="true">✧</span>
+                                <span>
+                                    Uses company knowledge and web research when needed
+                                </span>
+                            </div>
+
+                            <div class="composer-actions">
+                                <span class="character-count" id="characterCount">
+                                    0 / 6000
+                                </span>
+
+                                <button class="send-button" id="sendButton" type="submit" aria-label="Send question">
+                                    <span>Send</span>
+                                    <span aria-hidden="true">↑</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <p class="composer-disclaimer">
+                        AI-generated responses can be inaccurate. Confirm important
+                        employment decisions with your HR team.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- RIGHT SIDEBAR: OBSERVABILITY -->
+        <aside class="inspector-panel" id="inspectorPanel">
+            <div class="inspector-header">
+                <div>
+                    <p class="topbar__eyebrow">OBSERVABILITY</p>
+                    <h2>Agent details</h2>
+                </div>
+
+                <button class="icon-button" id="clearTraceBtn" type="button" aria-label="Clear trace"
+                    title="Clear trace">↻</button>
+            </div>
+
+            <!-- EXECUTION STATUS -->
+            <section class="inspector-section">
+                <div class="section-heading">
+                    <h3>Execution status</h3>
+                    <span class="status-indicator" id="executionStatus">Idle</span>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-row">
+                        <span>Evidence confidence</span>
+                        <strong id="confidenceValue">—</strong>
+                    </div>
+
+                    <div class="meter-track" role="progressbar" id="confidenceMeter" aria-label="Evidence confidence"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="meter-fill" id="confidenceFill"></div>
+                    </div>
+
+                    <p class="metric-note" id="confidenceNote">
+                        Confidence is shown when the backend provides a score.
+                    </p>
+                </div>
+            </section>
+
+            <!-- EXECUTION TRACE -->
+            <section class="inspector-section">
+                <div class="section-heading">
+                    <h3>Execution trace</h3>
+                    <span class="trace-count" id="traceCount">0 steps</span>
+                </div>
+
+                <ol class="trace-list" id="traceList">
+                    <li class="trace-empty">
+                        Ask a question to see the agent's execution trace.
+                    </li>
+                </ol>
+            </section>
+
+            <!-- EVIDENCE SOURCES -->
+            <section class="inspector-section">
+                <div class="section-heading">
+                    <h3>Evidence sources</h3>
+                    <span class="trace-count" id="evidenceCount">0</span>
+                </div>
+
+                <div class="evidence-list" id="evidenceList">
+                    <div class="evidence-empty">
+                        Retrieved documents and external references will appear here.
+                    </div>
+                </div>
+            </section>
+
+            <!-- RETRIEVAL SUMMARY -->
+            <section class="inspector-section">
+                <div class="section-heading">
+                    <h3>Retrieval summary</h3>
+                </div>
+
+                <dl class="summary-list">
+                    <div>
+                        <dt>Source used</dt>
+                        <dd id="summarySource">Not started</dd>
+                    </div>
+
+                    <div>
+                        <dt>Search mode</dt>
+                        <dd id="summaryMode">Automatic</dd>
+                    </div>
+
+                    <div>
+                        <dt>Evidence grade</dt>
+                        <dd id="summaryGrade">—</dd>
+                    </div>
+                </dl>
+            </section>
+        </aside>
+    </div>
+
+    <!-- DOCUMENT UPLOAD MODAL -->
+    <div class="modal-backdrop" id="uploadModal" hidden>
+        <section class="upload-modal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+            <header class="upload-modal__header">
+                <div>
+                    <p class="topbar__eyebrow">KNOWLEDGE MANAGEMENT</p>
+                    <h2 id="uploadModalTitle">Upload HR documents</h2>
+                    <p>Import documents into the company knowledge base.</p>
+                </div>
+
+                <button class="icon-button" id="closeUploadBtn" type="button"
+                    aria-label="Close upload dialog">×</button>
+            </header>
+
+            <form id="uploadForm">
+                <label class="upload-dropzone" for="documentInput">
+                    <span class="upload-dropzone__icon" aria-hidden="true">↑</span>
+                    <strong>Select documents to upload</strong>
+                    <span>PDF, TXT, MD or DOCX</span>
+                    <span class="upload-dropzone__hint">
+                        Choose files from your device
+                    </span>
+                </label>
+
+                <input id="documentInput" name="files" type="file" accept=".pdf,.txt,.md,.docx" multiple hidden>
+
+                <div class="selected-files" id="selectedFiles">
+                    No files selected.
+                </div>
+
+                <div class="form-field">
+                    <label for="adminKeyInput">Admin key</label>
+
+                    <input id="adminKeyInput" name="admin_key" type="password" placeholder="Enter your admin key"
+                        autocomplete="current-password">
+
+                    <p class="form-help">
+                        Used for authorized document ingestion.
+                    </p>
+                </div>
+
+                <div class="upload-status" id="uploadStatus" role="status" aria-live="polite"></div>
+
+                <footer class="upload-modal__footer">
+                    <button class="secondary-btn" id="cancelUploadBtn" type="button">Cancel</button>
+
+                    <button class="send-button" id="submitUploadBtn" type="submit">Upload documents</button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <!-- ASSISTANT MESSAGE TEMPLATE -->
+    <template id="assistantMessageTemplate">
+        <article class="chat-message chat-message--assistant">
+            <div class="message-avatar" aria-hidden="true">H</div>
+
+            <div class="message-body">
+                <div class="message-meta">
+                    <strong>HR Assist</strong>
+                    <span class="message-time">Assistant</span>
+                </div>
+
+                <div class="message-content">
+                    <div class="answer"></div>
+                </div>
+
+                <div class="message-source-row">
+                    <span class="source-chip" hidden></span>
+                </div>
+
+                <div class="citation-row"></div>
+
+                <div class="message-feedback">
+                    <button type="button" class="feedback-btn" data-feedback="positive" aria-label="Helpful answer"
+                        title="Helpful">👍</button>
+
+                    <button type="button" class="feedback-btn" data-feedback="negative" aria-label="Unhelpful answer"
+                        title="Not helpful">👎</button>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    <!-- USER MESSAGE TEMPLATE -->
+    <template id="userMessageTemplate">
+        <article class="chat-message chat-message--user">
+            <div class="message-avatar" aria-hidden="true">Y</div>
+
+            <div class="message-body">
+                <div class="message-meta">
+                    <strong>You</strong>
+                    <span class="message-time">You</span>
+                </div>
+
+                <div class="message-content user-message-content"></div>
+            </div>
+        </article>
+    </template>
+
+    <!-- MARKDOWN AND HTML SANITIZATION -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+    <!-- APPLICATION JAVASCRIPT -->
+    <script src="{{ url_for('static', path='/js/app.js') }}" defer></script>
+</body>
+
+</html>
