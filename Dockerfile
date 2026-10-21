@@ -31,6 +31,6 @@ RUN mkdir -p /app/data
 
 # FastAPI port
 EXPOSE 8080
-
+#
 # Start FastAPI
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
